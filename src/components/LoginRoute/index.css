@@ -1,0 +1,63 @@
+.login-page {
+  font-family: Roboto;
+  color: #262626;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+  height: 100vh;
+}
+.insta-banner {
+  text-align: center;
+}
+.login-form {
+  width: 30%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30px;
+  box-shadow: #323f4b 1px 1px 5px 0px;
+  border-radius: 10px;
+}
+.login-form .logo {
+  text-align: center;
+  width: 82px;
+  height: 42px;
+}
+.insta-heading {
+  font-size: 24px;
+}
+.label-style {
+  font-size: 12px;
+  width: 100%;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.input-style {
+  font-size: 14px;
+  color: #262626;
+  height: 40px;
+  background-color: #eeeeee;
+  outline: none;
+  border-radius: 5px;
+  width: 100%;
+  border: 0;
+  padding: 10px;
+}
+.err-msg {
+  color: #ef4444;
+  font-size: 14px;
+  width: 100%;
+}
+.login-btn {
+  background-color: #4094ef;
+  color: #ffffff;
+  border-radius: 8px;
+  outline: none;
+  border: 0;
+  height: 40px;
+  width: 100%;
+  margin-top: 15px;
+  cursor: pointer;
+}

@@ -1,0 +1,108 @@
+.home-cont {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stories-container {
+  width: 100%;
+  max-width: 1040px;
+  margin-top: 10px;
+}
+.slick-container {
+  min-width: 0;
+}
+.stories-loader {
+  text-align: center;
+}
+.link-style {
+  text-decoration: none;
+  padding: 0 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.story-username {
+  color: #262626;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.story-image {
+  margin: 0;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+}
+
+/* You can change the CSS color to style the Next and 
+Previous Arrow buttons according to your project */
+
+.slick-prev:before,
+.slick-next:before {
+  color: black;
+}
+
+.user-post-container-home {
+  list-style-type: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.user-post-item {
+  width: 1040px;
+  border: 1px #dbdbdb solid;
+}
+.user-pic-name {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-left: 24px;
+  text-decoration: none;
+}
+.profile {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  margin: 0;
+  margin-right: 10px;
+}
+.username-post {
+  font-size: 17px;
+  font-weight: 500;
+  margin-left: 10px;
+  color: #262626;
+  margin: 0;
+}
+.user-post-img {
+  width: 100%;
+  height: 614px;
+}
+.post-info {
+  padding-left: 24px;
+}
+.user-reactions {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 70px;
+}
+.likeStatusBtn {
+  outline: none;
+  border: 0;
+  background-color: transparent;
+  cursor: pointer;
+}
+.likeStyleIcon {
+  font-size: 15px;
+}
+.user-comment {
+  font-size: 14px;
+  font-weight: 500;
+}
+.comment {
+  font-weight: 400;
+}

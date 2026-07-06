@@ -1,0 +1,106 @@
+.user-profile-route {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+}
+.user-profile-card {
+  width: 1040px;
+}
+.profile-card {
+  display: flex;
+  flex-direction: row;
+  width: 1040px;
+  margin-top: 15px;
+}
+.user-profile {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+}
+.profile-info-card {
+  margin-left: 25px;
+}
+.username {
+  font-weight: 300;
+  font-size: 32px;
+  margin: 0;
+}
+.posts-followers {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+.posts-followers p {
+  font-size: 16px;
+  font-weight: 500;
+  margin-right: 20px;
+}
+.posts-followers p span {
+  font-weight: 400;
+}
+.user-id {
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0;
+}
+.user-bio {
+  font-size: 16px;
+  font-weight: 400;
+}
+.stories-cont {
+  list-style-type: none;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 0;
+  margin-top: 25px;
+}
+.story-item {
+  margin-right: 10px;
+  width: 86px;
+  height: 86px;
+  border-radius: 50%;
+  border: 1px solid #c6c6c8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.story {
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+}
+.posts-card {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  border-top: 1px solid #c6c6c8;
+  padding-top: 15px;
+}
+.post-icon {
+  height: 24px;
+  width: 24px;
+  color: #262626;
+}
+.posts-card p {
+  margin: 0;
+  margin-left: 25px;
+  font-size: 24px;
+  font-weight: 500;
+  color: #262626;
+}
+.posts-cont {
+  padding: 0;
+  list-style-type: none;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+.post {
+  width: 330px;
+  height: 330px;
+}

@@ -1,0 +1,83 @@
+.nav-bar {
+  width: 100%;
+  border: 1px #dbdbdb solid;
+}
+.navbar-card {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding-left: 20px;
+  padding-right: 20px;
+  height: 64px;
+  width: 1040px;
+  margin: auto;
+  margin-bottom: 10px;
+}
+.logo-name {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+.nav-logo {
+  width: 59px;
+  height: 30px;
+}
+.nav-logo p {
+  font-size: 20px;
+  font-weight: 500;
+}
+.nav-options-card {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  list-style-type: none;
+}
+.nav-options-card li {
+  margin-right: 20px;
+}
+.search-card {
+  width: 214px;
+  height: 28px;
+  border: #dbdbdb 1px solid;
+  border-radius: 5px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+.search {
+  outline: none;
+  border: 0;
+  background-color: transparent;
+}
+.search-btn {
+  width: 34px;
+  height: 26px;
+  background-color: #dbdbdb;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  border: 0;
+  outline: none;
+  cursor: pointer;
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+}
+.search-icon {
+  color: #989898;
+  height: 10px;
+  width: 10px;
+}
+.logout-btn {
+  width: 86px;
+  height: 32px;
+  background-color: #4094ef;
+  border: 0;
+  outline: none;
+  color: #ffffff;
+  border-radius: 5px;
+  cursor: pointer;
+}
