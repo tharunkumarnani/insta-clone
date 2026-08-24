@@ -3,14 +3,13 @@ import {Link, Redirect} from 'react-router-dom'
 import Cookies from 'js-cookie'
 import Loader from 'react-loader-spinner'
 import Slider from 'react-slick'
-import 'slick-carousel/slick/slick.css'
-import 'slick-carousel/slick/slick-theme.css'
-import './index.css'
 import {BsHeart} from 'react-icons/bs'
 import {FcLike} from 'react-icons/fc'
-
 import {FaRegComment} from 'react-icons/fa'
-import {MdShare} from 'react-icons/md'
+import {BiShareAlt} from 'react-icons/bi'
+
+import './index.css'
+import Header from '../Header'
 
 const settings = {
   dots: false,
@@ -20,8 +19,29 @@ const settings = {
   slidesToScroll: 1,
 }
 
+const FailureView = props => {
+  const {onRetry} = props
+
+  return (
+    <div className="failure-view-container">
+      <img
+        src="https://assets.ccbp.in/frontend/react-js/insta-share/failure-view.png"
+        alt="failure view"
+        className="failure-image"
+      />
+
+      <p>Something went wrong. Please try again</p>
+
+      <button type="button" onClick={onRetry} className="try-again-button">
+        Try again
+      </button>
+    </div>
+  )
+}
+
 const UserPostRender = props => {
   const {postDetails, updateLikeStatus} = props
+
   const {
     likesCount,
     createdAt,
@@ -34,42 +54,66 @@ const UserPostRender = props => {
     postId,
     likeStatus,
   } = postDetails
+
   const onClickLike = () => {
-    console.log('inner', postId)
     updateLikeStatus(postId)
   }
+
   const likeReactionButton = likeStatus ? (
-    <button className="likeStatusBtn" type="button" onClick={onClickLike}>
+    <button
+      className="likeStatusBtn"
+      type="button"
+      onClick={onClickLike}
+      data-testid="unLikeIcon"
+    >
       <FcLike className="likeStyleIcon" />
     </button>
   ) : (
-    <button className="likeStatusBtn" type="button" onClick={onClickLike}>
+    <button
+      className="likeStatusBtn"
+      type="button"
+      onClick={onClickLike}
+      data-testid="likeIcon"
+    >
       <BsHeart className="likeStyleIcon" />
     </button>
   )
+
   return (
     <li className="user-post-item">
-      <Link className="user-pic-name" to={`/user-profile/${userId}`}>
-        <img src={profileUrl} alt="profile" className="profile" />
-        <p className="username-post">{userName}</p>
-      </Link>
-      <img alt="post pic" src={postImageUrl} className="user-post-img" />
+      <div className="user-pic-name">
+        <img src={profileUrl} alt="post author profile" className="profile" />
+
+        <Link to={`/users/${userId}`}>
+          <p className="username-post">{userName}</p>
+        </Link>
+      </div>
+
+      <img alt="post" src={postImageUrl} className="user-post-img" />
+
       <div className="post-info">
         <div className="user-reactions">
           {likeReactionButton}
 
           <FaRegComment />
-          <MdShare />
+
+          <BiShareAlt />
         </div>
+
         <p>{likesCount} Likes</p>
+
         <p className="caption">{postCaption}</p>
+
         <div className="comments-cont">
-          {comments.map(each => (
-            <p className="user-comment">
-              {each.user_name} <span className="comment">{each.comment}</span>
-            </p>
+          {comments.map(eachComment => (
+            <div key={`${eachComment.user_name}-${eachComment.comment}`}>
+              <span className="comment-user-name">{eachComment.user_name}</span>
+
+              <p className="user-comment">{eachComment.comment}</p>
+            </div>
           ))}
         </div>
+
         <p className="posted-time">{createdAt}</p>
       </div>
     </li>
@@ -77,137 +121,243 @@ const UserPostRender = props => {
 }
 
 class HomeRoute extends Component {
-  state = {posts: [], stories: []}
-
-  componentDidMount() {
-    this.onRenderPosts()
+  state = {
+    posts: [],
+    stories: [],
+    userStoriesApiStatus: 'initial',
+    postsApiStatus: 'initial',
   }
 
-  onRenderPosts = async () => {
+  componentDidMount() {
+    this.getUserStories()
+    this.getPosts()
+  }
+
+  getApiOptions = () => {
     const jwtToken = Cookies.get('jwt_token')
-    const options = {
+
+    return {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${jwtToken}`,
-        'Content-Type': 'Application/Json',
+        'Content-Type': 'application/json',
       },
     }
-    const storiesUrl = 'https://apis.ccbp.in/insta-share/stories'
-    const res1 = await fetch(storiesUrl, options)
-    const data1 = await res1.json()
-    const updateStoriesDetails = data1.users_stories.map(each => ({
-      storyUrl: each.story_url,
-      userId: each.user_id,
-      userName: each.user_name,
-    }))
-    const postsUrl = 'https://apis.ccbp.in/insta-share/posts'
-    const res = await fetch(postsUrl, options)
-    const data = await res.json()
-
-    console.log('posts', data.posts)
-    const updatedData = data.posts.map(each => ({
-      comments: each.comments,
-      createdAt: each.created_at,
-      likesCount: each.likes_count,
-      postCaption: each.post_details.caption,
-      postImageUrl: each.post_details.image_url,
-      profileUrl: each.profile_pic,
-      userName: each.user_name,
-      userId: each.user_id,
-      postId: each.post_id,
-      likeStatus: false,
-    }))
-    this.setState({posts: updatedData, stories: updateStoriesDetails})
   }
 
-  renderSlider = () => {
-    const {stories} = this.state
-    if (stories.length === 0) {
+  getUserStories = async () => {
+    this.setState({
+      userStoriesApiStatus: 'loading',
+    })
+
+    const storiesUrl = 'https://apis.ccbp.in/insta-share/stories'
+
+    try {
+      const response = await fetch(storiesUrl, this.getApiOptions())
+
+      if (!response.ok) {
+        throw new Error('Stories API failed')
+      }
+
+      const data = await response.json()
+
+      const updatedStories = data.users_stories.map(eachStory => ({
+        storyUrl: eachStory.story_url,
+        userId: eachStory.user_id,
+        userName: eachStory.user_name,
+      }))
+
+      this.setState({
+        stories: updatedStories,
+        userStoriesApiStatus: 'success',
+      })
+    } catch (error) {
+      this.setState({
+        userStoriesApiStatus: 'failure',
+      })
+    }
+  }
+
+  getPosts = async () => {
+    this.setState({
+      postsApiStatus: 'loading',
+    })
+
+    const postsUrl = 'https://apis.ccbp.in/insta-share/posts'
+
+    try {
+      const response = await fetch(postsUrl, this.getApiOptions())
+
+      if (!response.ok) {
+        throw new Error('Posts API failed')
+      }
+
+      const data = await response.json()
+
+      const updatedPosts = data.posts.map(eachPost => ({
+        comments: eachPost.comments,
+        createdAt: eachPost.created_at,
+        likesCount: eachPost.likes_count,
+        postCaption: eachPost.post_details.caption,
+        postImageUrl: eachPost.post_details.image_url,
+        profileUrl: eachPost.profile_pic,
+        userName: eachPost.user_name,
+        userId: eachPost.user_id,
+        postId: eachPost.post_id,
+        likeStatus: eachPost.like_status,
+      }))
+
+      this.setState({
+        posts: updatedPosts,
+        postsApiStatus: 'success',
+      })
+    } catch (error) {
+      this.setState({
+        postsApiStatus: 'failure',
+      })
+    }
+  }
+
+  renderStories = () => {
+    const {stories, userStoriesApiStatus} = this.state
+
+    if (
+      userStoriesApiStatus === 'initial' ||
+      userStoriesApiStatus === 'loading'
+    ) {
       return (
-        <div className="stories-loader">
+        <div className="stories-loader" data-testid="loader">
           <Loader type="ThreeDots" color="#262626" height={30} width={30} />
         </div>
       )
     }
 
+    if (userStoriesApiStatus === 'failure') {
+      return <FailureView onRetry={this.getUserStories} />
+    }
+
     return (
-      <Slider {...settings}>
-        {stories.map(eachStory => {
-          const {userName, userId, storyUrl} = eachStory
-          return (
-            <div className="slick-item" key={userId}>
-              <Link to={`/user-profile/${userId}`} className="link-style">
-                <img className="story-image" src={storyUrl} alt="profile_pic" />
-                <p className="story-username">{userName}</p>
+      <ul className="stories-list">
+        <Slider {...settings}>
+          {stories.map(eachStory => (
+            <li className="slick-item" key={eachStory.userId}>
+              <Link to={`/users/${eachStory.userId}`} className="link-style">
+                <img
+                  className="story-image"
+                  src={eachStory.storyUrl}
+                  alt="profile_pic"
+                />
+
+                <p className="story-username">{eachStory.userName}</p>
               </Link>
-            </div>
-          )
-        })}
-      </Slider>
+            </li>
+          ))}
+        </Slider>
+      </ul>
     )
   }
 
-  updateLikeStatus = async id => {
-    console.log('main ', id)
+  renderPosts = () => {
+    const {posts, postsApiStatus} = this.state
+
+    if (postsApiStatus === 'initial' || postsApiStatus === 'loading') {
+      return (
+        <div className="stories-loader" data-testid="loader">
+          <Loader type="ThreeDots" color="#262626" height={30} width={30} />
+        </div>
+      )
+    }
+
+    if (postsApiStatus === 'failure') {
+      return <FailureView onRetry={this.getPosts} />
+    }
+
+    return (
+      <>
+        <ul className="user-post-container-home">
+          {posts.map(eachPost => (
+            <UserPostRender
+              key={eachPost.postId}
+              postDetails={eachPost}
+              updateLikeStatus={this.updateLikeStatus}
+            />
+          ))}
+        </ul>
+      </>
+    )
+  }
+
+  updateLikeStatus = async postId => {
     const {posts} = this.state
 
-    const jwtToken =
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InJhaHVsIiwicm9sZSI6IlBSSU1FX1VTRVIiLCJpYXQiOjE2MjMwNjU1MzJ9.D13s5wN3Oh59aa_qtXMo3Ec4wojOx0EZh8Xr5C5sRkU'
-    const filteredPost = posts.filter(each => each.postId === id)
-    console.log('main', filteredPost)
-    const {likeStatus} = filteredPost
+    const selectedPost = posts.find(eachPost => eachPost.postId === postId)
 
-    const bodyData = {like_status: !likeStatus}
+    if (selectedPost === undefined) {
+      return
+    }
+
+    const newLikeStatus = !selectedPost.likeStatus
+
+    const jwtToken = Cookies.get('jwt_token')
+
     const options = {
-      method: 'post',
+      method: 'POST',
       headers: {
         Authorization: `Bearer ${jwtToken}`,
-        'Content-Type': 'Application/Json',
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify(bodyData),
+      body: JSON.stringify({
+        like_status: newLikeStatus,
+      }),
     }
-    const likeStatusUrl = `https://apis.ccbp.in/insta-share/posts/${id}/like`
-    const res3 = await fetch(likeStatusUrl, options)
-    if (res3.ok) {
-      const updateLikeStatusPosts = posts.map(each => {
-        if (each.postId === id) {
-          return {...each, likeStatus: !each.likeStatus}
+
+    const likeStatusUrl = `https://apis.ccbp.in/insta-share/posts/${postId}/like`
+
+    try {
+      const response = await fetch(likeStatusUrl, options)
+
+      if (!response.ok) {
+        return
+      }
+
+      const updatedPosts = posts.map(eachPost => {
+        if (eachPost.postId === postId) {
+          return {
+            ...eachPost,
+            likeStatus: newLikeStatus,
+            likesCount: newLikeStatus
+              ? eachPost.likesCount + 1
+              : eachPost.likesCount - 1,
+          }
         }
-        return each
+
+        return eachPost
       })
-      this.setState({posts: updateLikeStatusPosts})
+
+      this.setState({
+        posts: updatedPosts,
+      })
+    } catch (error) {
+      // Keep existing UI state when request fails
     }
   }
 
   render() {
-    const {posts} = this.state
     const jwtToken = Cookies.get('jwt_token')
+
     if (jwtToken === undefined) {
-      return <Redirect to="/" />
+      return <Redirect to="/login" />
     }
-    if (posts.length === 0) {
-      return (
-        <div className="stories-loader">
-          <Loader type="ThreeDots" color="#262626" height={30} width={30} />
-        </div>
-      )
-    }
+
     return (
       <div className="home-cont">
+        <Header />
+
         <div className="stories-container">
-          <div className="slick-container">{this.renderSlider()}</div>
+          <div className="slick-container">{this.renderStories()}</div>
         </div>
-        {posts && (
-          <ul className="user-post-container-home">
-            {posts.map(each => (
-              <UserPostRender
-                postDetails={each}
-                updateLikeStatus={this.updateLikeStatus}
-                key={each.postId}
-              />
-            ))}
-          </ul>
-        )}
+
+        <div>{this.renderPosts()}</div>
       </div>
     )
   }

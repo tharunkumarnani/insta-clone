@@ -2,27 +2,30 @@ import {useState} from 'react'
 import {withRouter, Link} from 'react-router-dom'
 import Cookies from 'js-cookie'
 import {FaSearch} from 'react-icons/fa'
+
 import './index.css'
 import Context from '../../context/Context'
 
 const Header = props => {
   const [userSearch, setUserSearch] = useState('')
-  const updateUserSearch = e => {
-    setUserSearch(e.target.value)
+
+  const updateUserSearch = event => {
+    setUserSearch(event.target.value)
   }
 
   const requestLogout = () => {
     Cookies.remove('jwt_token')
+
     const {history} = props
-    const {replace} = history
-    replace('/login')
+    history.replace('/login')
   }
 
   return (
     <Context.Consumer>
       {value => {
         const {updateSearch} = value
-        const triggerUpdateBtn = () => {
+
+        const onSearch = () => {
           updateSearch(userSearch)
         }
 
@@ -37,8 +40,10 @@ const Header = props => {
                     src="https://res.cloudinary.com/dcbox8yto/image/upload/v1766593471/instaShare/logo_aixmqo.png"
                   />
                 </Link>
-                <h3>Insta Share</h3>
+
+                <h1>Insta Share</h1>
               </div>
+
               <ul className="nav-options-card">
                 <li className="search-card">
                   <input
@@ -48,32 +53,32 @@ const Header = props => {
                     type="search"
                     placeholder="Search Caption"
                   />
-                  <button
-                    onClick={triggerUpdateBtn}
-                    className="search-btn"
-                    type="button"
-                  >
-                    <Link
-                      to={`/posts?search=${userSearch}`}
-                      keySearch={userSearch}
+
+                  <Link to={`/posts?search=${userSearch}`}>
+                    <button
+                      type="button"
+                      className="search-btn"
+                      data-testid="searchIcon"
+                      onClick={onSearch}
                     >
-                      <button type="button" testid="searchIcon">
-                        <FaSearch className="search-icon" />
-                      </button>
-                    </Link>
-                  </button>
+                      <FaSearch className="search-icon" />
+                    </button>
+                  </Link>
                 </li>
+
                 <li>
                   <Link to="/">Home</Link>
                 </li>
+
                 <li>
                   <Link to="/my-profile">Profile</Link>
                 </li>
+
                 <li>
                   <button
-                    onClick={requestLogout}
                     type="button"
                     className="logout-btn"
+                    onClick={requestLogout}
                   >
                     Logout
                   </button>

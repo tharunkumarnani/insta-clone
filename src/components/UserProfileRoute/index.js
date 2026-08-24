@@ -1,49 +1,113 @@
 import {Component} from 'react'
 import Cookies from 'js-cookie'
 import {BsGrid3X3} from 'react-icons/bs'
-import {FaCamera} from 'react-icons/fa'
+import {BiCamera} from 'react-icons/bi'
+import Loader from 'react-loader-spinner'
 
 import './index.css'
+import Header from '../Header'
 
 class UserProfileRoute extends Component {
-  state = {userProfileData: {}, stories: [], posts: []}
-
-  componentDidMount() {
-    this.onRenderPosts()
+  state = {
+    userProfileData: {},
+    stories: [],
+    posts: [],
+    isLoading: true,
+    isFailure: false,
   }
 
-  onRenderPosts = async () => {
+  componentDidMount() {
+    this.getUserProfileData()
+  }
+
+  getUserProfileData = async () => {
+    this.setState({
+      isLoading: true,
+      isFailure: false,
+    })
+
     const jwtToken = Cookies.get('jwt_token')
+
     const options = {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${jwtToken}`,
-        'Content-Type': 'Application/Json',
+        'Content-Type': 'application/json',
       },
     }
+
     const {match} = this.props
     const {id} = match.params
-    const userId = id
-    const userProfileUrl = `https://apis.ccbp.in/insta-share/users/${userId}`
-    const res = await fetch(userProfileUrl, options)
-    const data = await res.json()
-    const updatedData = {
-      id: data.user_details.id,
-      followersCount: data.user_details.followers_count,
-      followingCount: data.user_details.following_count,
-      userBio: data.user_details.user_bio,
-      userId: data.user_details.user_id,
-      userName: data.user_details.user_name,
-      profilePic: data.user_details.profile_pic,
 
-      postsCount: data.user_details.posts_count,
+    const userProfileUrl = `https://apis.ccbp.in/insta-share/users/${id}`
+
+    try {
+      const response = await fetch(userProfileUrl, options)
+
+      if (response.ok) {
+        const data = await response.json()
+
+        const profile = data.user_details
+
+        const updatedData = {
+          id: profile.id,
+          followersCount: profile.followers_count,
+          followingCount: profile.following_count,
+          userBio: profile.user_bio,
+          userId: profile.user_id,
+          userName: profile.user_name,
+          profilePic: profile.profile_pic,
+          postsCount: profile.posts_count,
+        }
+
+        this.setState({
+          userProfileData: updatedData,
+          stories: profile.stories,
+          posts: profile.posts,
+          isLoading: false,
+          isFailure: false,
+        })
+      } else {
+        this.setState({
+          isLoading: false,
+          isFailure: true,
+        })
+      }
+    } catch (error) {
+      this.setState({
+        isLoading: false,
+        isFailure: true,
+      })
     }
-    this.setState({
-      userProfileData: updatedData,
-      stories: data.user_details.stories,
-      posts: data.user_details.posts,
-    })
   }
+
+  renderLoader = () => (
+    <div className="loader-container" data-testid="loader">
+      <Loader type="TailSpin" color="#4094EF" height={50} width={50} />
+    </div>
+  )
+
+  renderFailureView = () => (
+    <div className="failure-container">
+      <img
+        src="https://assets.ccbp.in/frontend/react-js/insta-share/failure-view.png"
+        alt="failure view"
+        className="failure-image"
+      />
+
+      <p className="failure-description">
+        Something went wrong. Please try again
+      </p>
+
+      <button
+        type="button"
+        className="try-again-button"
+        onClick={this.getUserProfileData}
+      >
+        Try again
+      </button>
+    </div>
+  )
 
   renderUserPosts = () => {
     const {posts} = this.state
@@ -52,25 +116,23 @@ class UserProfileRoute extends Component {
       return (
         <li className="no-user-posts">
           <div className="cam-cont">
-            <FaCamera className="camera-icon" />
+            <BiCamera className="camera-icon" />
           </div>
-          <p className="no-posts">No Posts Yet</p>
+          <h1 className="no-posts">No Posts</h1>
         </li>
       )
     }
-    return (
-      <>
-        {posts.map(each => (
-          <li className="post-item" key={each.id}>
-            <img className="post" alt="post" src={each.image} />
-          </li>
-        ))}
-      </>
-    )
+
+    return posts.map(eachPost => (
+      <li className="post-item" key={eachPost.id}>
+        <img className="post" alt="user post" src={eachPost.image} />
+      </li>
+    ))
   }
 
-  render() {
+  renderUserProfile = () => {
     const {userProfileData, stories} = this.state
+
     const {
       profilePic,
       userName,
@@ -80,42 +142,65 @@ class UserProfileRoute extends Component {
       postsCount,
       userBio,
     } = userProfileData
+
+    return (
+      <div className="user-profile-card">
+        <div className="profile-card">
+          <img alt="user profile" src={profilePic} className="user-profile" />
+
+          <div className="profile-info-card">
+            <h1 className="username">{userName}</h1>
+
+            <div className="posts-followers">
+              <p>
+                {postsCount} <span>posts</span>
+              </p>
+
+              <p>
+                {followersCount} <span>followers</span>
+              </p>
+
+              <p>
+                {followingCount} <span>following</span>
+              </p>
+            </div>
+
+            <p className="user-id">{userId}</p>
+
+            <p className="user-bio">{userBio}</p>
+          </div>
+        </div>
+
+        <ul className="stories-cont">
+          {stories.map(eachStory => (
+            <li className="story-item" key={eachStory.id}>
+              <img className="story" alt="user story" src={eachStory.image} />
+            </li>
+          ))}
+        </ul>
+
+        <div className="posts-card">
+          <BsGrid3X3 className="post-icon" />
+          <h1>Posts</h1>
+        </div>
+
+        <ul className="posts-cont">{this.renderUserPosts()}</ul>
+      </div>
+    )
+  }
+
+  render() {
+    const {isLoading, isFailure} = this.state
+
     return (
       <div className="user-profile-route">
-        <div className="user-profile-card">
-          <div className="profile-card">
-            <img alt="user profile" src={profilePic} className="user-profile" />
-            <div className="profile-info-card">
-              <p className="username">{userName}</p>
-              <div className="posts-followers">
-                <p>
-                  {postsCount} <span>posts</span>
-                </p>
-                <p>
-                  {followersCount} <span>followers</span>
-                </p>
-                <p>
-                  {followingCount} <span>following</span>
-                </p>
-              </div>
-              <p className="user-id">{userId}</p>
-              <p className="user-bio">{userBio}</p>
-            </div>
-          </div>
-          <ul className="stories-cont">
-            {stories.map(each => (
-              <li className="story-item" key={each.id}>
-                <img className="story" alt="story" src={each.image} />
-              </li>
-            ))}
-          </ul>
+        <Header />
 
-          <div className="posts-card">
-            <BsGrid3X3 className="post-icon" />
-            <p>Posts</p>
-          </div>
-          <ul className="posts-cont">{this.renderUserPosts()}</ul>
-        </div>
+        {isLoading && this.renderLoader()}
+
+        {!isLoading && isFailure && this.renderFailureView()}
+
+        {!isLoading && !isFailure && this.renderUserProfile()}
       </div>
     )
   }

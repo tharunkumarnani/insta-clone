@@ -1,11 +1,14 @@
 import {Component} from 'react'
-import {withRouter} from 'react-router-dom'
+import {Link, withRouter} from 'react-router-dom'
 import Cookies from 'js-cookie'
-import './index.css'
+import Loader from 'react-loader-spinner'
 import {BsHeart} from 'react-icons/bs'
 import {BiShareAlt} from 'react-icons/bi'
 import {FaRegComment} from 'react-icons/fa'
+
 import Context from '../../context/Context'
+import Header from '../Header'
+import './index.css'
 
 const processStatus = {
   initial: 'INITIAL',
@@ -17,6 +20,7 @@ const processStatus = {
 
 const UserPostRender = props => {
   const {postDetails} = props
+
   const {
     likesCount,
     createdAt,
@@ -25,31 +29,48 @@ const UserPostRender = props => {
     postCaption,
     userName,
     comments,
+    userId,
   } = postDetails
+
   return (
     <li className="user-post-item">
       <div className="user-pic-name">
         <div className="user-pic-story">
-          <img src={profileUrl} alt="profile" className="profile" />
+          <img src={profileUrl} alt="post author profile" className="profile" />
         </div>
-        <p className="username">{userName}</p>
+
+        <Link to={`/users/${userId}`}>
+          <p className="username">{userName}</p>
+        </Link>
       </div>
-      <img alt="post pic" src={postImageUrl} className="user-post-img" />
+
+      <img alt="post" src={postImageUrl} className="user-post-img" />
+
       <div className="post-info">
         <div className="user-reactions">
-          <BsHeart className="reaction-icon" />
+          <button type="button" className="search-like-button">
+            <BsHeart className="reaction-icon" data-testid="likeIcon" />
+          </button>
+
           <FaRegComment className="reaction-icon" />
+
           <BiShareAlt className="reaction-icon" />
         </div>
+
         <p className="like">{likesCount} Likes</p>
+
         <p className="caption">{postCaption}</p>
+
         <div className="comments-cont">
-          {comments.map(each => (
-            <p className="user-comment">
-              {each.user_name} <span className="comment">{each.comment}</span>
-            </p>
+          {comments.map(eachComment => (
+            <div key={`${eachComment.user_name}-${eachComment.comment}`}>
+              <span>{eachComment.user_name}</span>
+
+              <p className="user-comment">{eachComment.comment}</p>
+            </div>
           ))}
         </div>
+
         <p className="posted-time">{createdAt}</p>
       </div>
     </li>
@@ -57,84 +78,123 @@ const UserPostRender = props => {
 }
 
 class SearchRoute extends Component {
-  state = {posts: [], userSearch: '', status: processStatus.initial}
+  state = {
+    posts: [],
+    userSearch: '',
+    status: processStatus.initial,
+  }
 
   componentDidMount() {
     this.onRenderPosts()
   }
 
-  onRenderPosts = async () => {
-    this.setState({status: processStatus.processing})
-    console.log('Search Route')
-    console.log('check', this.props)
+  getSearchValue = () => {
     const {location} = this.props
-    const {search} = location
-    const searched = search.split('=')[1]
+
+    const searchParams = new URLSearchParams(location.search)
+
+    return searchParams.get('search') || ''
+  }
+
+  onRenderPosts = async () => {
+    this.setState({
+      status: processStatus.processing,
+    })
+
+    const searched = this.getSearchValue()
 
     const jwtToken = Cookies.get('jwt_token')
+
     const options = {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${jwtToken}`,
-        'Content-Type': 'Application/Json',
+        'Content-Type': 'application/json',
       },
     }
+
     const postsUrl = `https://apis.ccbp.in/insta-share/posts?search=${searched}`
-    const res = await fetch(postsUrl, options)
-    if (res.ok) {
-      const data = await res.json()
-      console.log(data)
-      if (data.posts.length !== 0) {
-        const updatedData = data.posts.map(each => ({
-          comments: each.comments,
-          createdAt: each.created_at,
-          likesCount: each.likes_count,
-          postCaption: each.post_details.caption,
-          postImageUrl: each.post_details.image_url,
-          profileUrl: each.profile_pic,
-          userName: each.user_name,
-          userId: each.user_id,
-          postId: each.post_id,
-        }))
+
+    try {
+      const response = await fetch(postsUrl, options)
+
+      if (!response.ok) {
         this.setState({
-          posts: updatedData,
-          userSearch: searched,
-          status: processStatus.onSuccess,
+          status: processStatus.onFailure,
         })
-      } else {
-        this.setState({status: processStatus.onEmpty})
+
+        return
       }
-    } else {
-      this.setState({status: processStatus.onFailure})
+
+      const data = await response.json()
+
+      if (data.posts.length === 0) {
+        this.setState({
+          posts: [],
+          userSearch: searched,
+          status: processStatus.onEmpty,
+        })
+
+        return
+      }
+
+      const updatedData = data.posts.map(each => ({
+        comments: each.comments,
+        createdAt: each.created_at,
+        likesCount: each.likes_count,
+        postCaption: each.post_details.caption,
+        postImageUrl: each.post_details.image_url,
+        profileUrl: each.profile_pic,
+        userName: each.user_name,
+        userId: each.user_id,
+        postId: each.post_id,
+      }))
+
+      this.setState({
+        posts: updatedData,
+        userSearch: searched,
+        status: processStatus.onSuccess,
+      })
+    } catch (error) {
+      this.setState({
+        status: processStatus.onFailure,
+      })
     }
   }
 
-  onSuccessView = search => {
-    const {posts, userSearch} = this.state
-    console.log('by provider1', userSearch, 'local', search)
-    if (search !== userSearch) {
-      this.setState({userSearch: search}, this.onRenderPosts)
-      //   this.onRenderPosts()
-    }
+  onSuccessView = () => {
+    const {posts} = this.state
 
     return (
-      <ul className="user-post-container-search">
-        {posts.map(each => (
-          <UserPostRender postDetails={each} key={each.postId} />
-        ))}
-      </ul>
+      <div>
+        <h1 className="search-heading">Search Results</h1>
+
+        <ul className="user-post-container-search">
+          {posts.map(each => (
+            <UserPostRender postDetails={each} key={each.postId} />
+          ))}
+        </ul>
+      </div>
     )
   }
+
+  onLoadingView = () => (
+    <div className="loader-container" data-testid="loader">
+      <Loader type="ThreeDots" color="#262626" height={50} width={50} />
+    </div>
+  )
 
   onEmptyView = () => (
     <div className="empty-search-cont">
       <div className="empty-search-card">
         <img
           className="search-not-found-img"
-          alt="empty"
+          alt="search not found"
           src="https://res.cloudinary.com/dcbox8yto/image/upload/v1783339917/Group_vl6led.png"
         />
+
         <h1 className="search-not-found">Search Not Found</h1>
+
         <p className="search-not-found-des">
           Try different keyword or search again
         </p>
@@ -147,56 +207,58 @@ class SearchRoute extends Component {
       <div className="empty-search-card">
         <img
           className="search-not-found-img"
-          alt="Something went wrong"
-          src="https://res.cloudinary.com/dcbox8yto/image/upload/v1783339917/Group_7522_f89f5u.png"
+          alt="failure view"
+          src="https://assets.ccbp.in/frontend/react-js/insta-share/failure-view.png"
         />
-        <h1 className="search-not-found">
+
+        <p className="search-not-found-des">
           Something went wrong. Please try again
-        </h1>
+        </p>
+
         <button
           onClick={this.onRenderPosts}
           className="try-again"
           type="button"
         >
-          Try Again
+          Try again
         </button>
       </div>
     </div>
   )
 
-  render() {
-    const renderByStatus = search => {
-      const {status} = this.state
-      switch (status) {
-        case 'LOADING':
-          return <p>Loading</p>
-        case 'SUCCESS':
-          return this.onSuccessView(search)
-        case 'FAILURE':
-          return this.onFailureView()
+  renderSearchResult = () => {
+    const {status} = this.state
 
-        case 'EMPTY':
-          return this.onEmptyView()
+    switch (status) {
+      case processStatus.processing:
+        return this.onLoadingView()
 
-        default:
-          return ''
-      }
+      case processStatus.onSuccess:
+        return this.onSuccessView()
+
+      case processStatus.onFailure:
+        return this.onFailureView()
+
+      case processStatus.onEmpty:
+        return this.onEmptyView()
+
+      default:
+        return null
     }
+  }
 
+  render() {
     return (
       <Context.Consumer>
-        {value => {
-          const {search} = value
+        {value => (
+          <div className="page-card">
+            <Header />
 
-          return (
-            <div className="page-card">
-              <div>
-                {search && <p className="search-heading">Search Results</p>}
-                <div>{renderByStatus(search)}</div>
-              </div>
+            <div className="search-results-container">
+              {this.renderSearchResult()}
             </div>
-          )
-        }}
+          </div>
+        )}
       </Context.Consumer>
     )
   }
