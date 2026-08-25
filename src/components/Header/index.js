@@ -58,7 +58,7 @@ const Header = props => {
                     <button
                       type="button"
                       className="search-btn"
-                      data-testid="searchIcon"
+                      testid="searchIcon"
                       onClick={onSearch}
                     >
                       <FaSearch className="search-icon" />

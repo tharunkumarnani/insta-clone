@@ -179,7 +179,7 @@ class SearchRoute extends Component {
   }
 
   onLoadingView = () => (
-    <div className="loader-container" data-testid="loader">
+    <div className="loader-container" testid="loader">
       <Loader type="ThreeDots" color="#262626" height={50} width={50} />
     </div>
   )

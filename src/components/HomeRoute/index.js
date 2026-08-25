@@ -64,7 +64,7 @@ const UserPostRender = props => {
       className="likeStatusBtn"
       type="button"
       onClick={onClickLike}
-      data-testid="unLikeIcon"
+      testid="unLikeIcon"
     >
       <FcLike className="likeStyleIcon" />
     </button>
@@ -73,7 +73,7 @@ const UserPostRender = props => {
       className="likeStatusBtn"
       type="button"
       onClick={onClickLike}
-      data-testid="likeIcon"
+      testid="likeIcon"
     >
       <BsHeart className="likeStyleIcon" />
     </button>
@@ -226,7 +226,7 @@ class HomeRoute extends Component {
       userStoriesApiStatus === 'loading'
     ) {
       return (
-        <div className="stories-loader" data-testid="loader">
+        <div className="stories-loader" testid="loader">
           <Loader type="ThreeDots" color="#262626" height={30} width={30} />
         </div>
       )
@@ -245,7 +245,7 @@ class HomeRoute extends Component {
                 <img
                   className="story-image"
                   src={eachStory.storyUrl}
-                  alt="profile_pic"
+                  alt="user story"
                 />
 
                 <p className="story-username">{eachStory.userName}</p>
@@ -262,7 +262,7 @@ class HomeRoute extends Component {
 
     if (postsApiStatus === 'initial' || postsApiStatus === 'loading') {
       return (
-        <div className="stories-loader" data-testid="loader">
+        <div className="stories-loader" testid="loader">
           <Loader type="ThreeDots" color="#262626" height={30} width={30} />
         </div>
       )
